@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Acortador de URLs</h1>
+        <form id="urlForm">
+            <input type="text" id="urlInput" placeholder="Ingresa la URL" required>
+            <button type="submit">Acortar</button>
+        </form>
+
+        <!-- El título y la lista de URLs acortadas están siempre visibles -->
+        <div>
+            <h2>URL acortada</h2>
+            <ul id="shortUrls">
+                <!-- Aquí se mostrarán las URLs acortadas -->
+            </ul>
+        </div>
+
+        <!-- El resultado de la URL acortada -->
+        <p id="result"></p>
+    </div>
+    <script>
+        // Obtener las URLs acortadas y mostrarlas en la lista
+        async function getShortUrls() {
+            const response = await fetch('/shorten');
+            const shortUrls = await response.json();
+            const shortUrlsList = document.getElementById('shortUrls');
+            shortUrlsList.innerHTML = '';
+            shortUrls.forEach(url => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<a href="${url.shortUrl}" target="_blank">${url.shortUrl}</a>`;
+                shortUrlsList.appendChild(listItem);
+            });
+        }
+
+        document.getElementById('urlForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const urlInput = document.getElementById('urlInput').value;
+            const response = await fetch('/shorten', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ originalUrl: urlInput })
+            });
+            const result = await response.json();
+            document.getElementById('result').innerHTML = `<a href="${result.shortUrl}" target="_blank">${result.shortUrl}</a>`;
+
+            // Actualizar la lista de URLs acortadas después de acortar una nueva URL
+            getShortUrls();
+        });
+
+        // Cargar las URLs acortadas cuando la página se carga por primera vez
+        getShortUrls();
+    </script>
+</body>
+</html>
